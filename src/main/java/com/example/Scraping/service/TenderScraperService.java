@@ -166,7 +166,8 @@ public class TenderScraperService {
                         t.setOrganisation(cols.get(5).getText());
                         t.setInsertedDate(CurrentDate.currentDate());
 
-                        boolean exists= repository.existsByTitleAndOrganisation(t.getTitle(), t.getOrganisation());
+                        boolean exists= repository.existsByTitleAndOrganisation(cols.get(4).getText(), cols.get(5).getText());
+
                         if(!exists){
                             repository.save(t);
                             System.out.println("Inserted new tender");
@@ -185,7 +186,6 @@ public class TenderScraperService {
                     System.out.println("No more pages");
                     break;
                 }
-
             }
             System.out.println(
                     "All pages data inserted successfully"
