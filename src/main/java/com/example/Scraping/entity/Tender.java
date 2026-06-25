@@ -2,31 +2,38 @@ package com.example.Scraping.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Data;
 
 @Entity
+@Table(
+        name= "Tender_Details",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "TENDER_ID")
+        }
+)
 @Data
-@Table(name="DELHI_GOV_TENDERS")
 public class Tender {
 
     @Id
-    private String sno;
-
-    @Column(length = 200)
-    private String publishedDate;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // It works as serial no
 
     @Column(length= 300)
-    private String closingDate;
+    String e_publish_date;
 
     @Column(length= 300)
-    private String openingDate;
+    String closing_date;
 
-    @Column(length= 3000)
-    private String title;
+    @Column(length= 300)
+    String opening_date;
 
-    @Column(length= 2000)
-    private String organisation;
+    @Column(length= 3000, unique = true, name="TENDER_ID")
+    String tenderId;
 
-    @Column(length= 200)
-    private String InsertedDate;
+    @Column(length= 1000)
+    String organization_chain;
+
+    @Column(length= 50)
+    String insertedDate;
 
 }

@@ -1,95 +1,3 @@
-//package com.example.Scraping.service;
-//
-//import com.example.Scraping.entity.Tender;
-//import com.example.Scraping.function.CurrentDate;
-//import com.example.Scraping.repository.TenderRepository;
-//
-//import org.openqa.selenium.*;
-//import org.openqa.selenium.chrome.ChromeDriver;
-//
-//import org.openqa.selenium.support.ui.*;
-//
-//import org.springframework.stereotype.Service;
-//
-//import java.time.Duration;
-//import java.util.List;
-//
-//@Service
-//public class TenderScraperService {
-//
-//    private final TenderRepository repository;
-//
-//    public TenderScraperService(TenderRepository repository) {
-//        this.repository = repository;
-//    }
-//
-//    public void scrape() {
-////        Open Chrome Browser, Below line open browser automatically
-//        WebDriver driver = new ChromeDriver();
-//
-////        This WebDriverWait Class wait maximum 30 seconds after that program will automatically terminated
-//        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-//
-////        WebDriver Class open this website
-//        driver.get("https://govtprocurement.delhi.gov.in/nicgep/app");
-//
-//        try {
-//            Thread.sleep(5000);
-//
-////            Get All Html Elements from the web
-//            List<WebElement> allElements = driver.findElements(By.xpath("//*"));
-//
-////            Traverse every element
-//            for (WebElement el : allElements) {
-//                try {
-//                    String text = el.getText().toLowerCase();
-//                    if (text.equals("search")
-//                            || text.contains("search")) {
-//                        el.click();
-//                        System.out.println("Clicked Search");
-//                        break;
-//                    }
-//                } catch (Exception ignored) {
-//                }
-//            }
-//
-//            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("table.list_table")));
-//
-//            List<WebElement> rows = driver.findElements(By.cssSelector("table.list_table tr"));
-//
-//            Tender t= new Tender();
-//
-//            for (WebElement row : rows) {
-//
-//                List<WebElement> cols =row.findElements(By.tagName("td"));
-//
-//                if (cols.size() == 6) {
-//
-//                    if(cols.get(0).getText().toLowerCase().equals("s.no")) continue;
-//
-//                    String col1 = cols.get(0).getText();
-//                    String col2 = cols.get(1).getText();
-//                    String col3 = cols.get(2).getText();
-//                    String col4 = cols.get(3).getText();
-//                    String col5 = cols.get(4).getText();
-//                    String col6 = cols.get(5).getText();
-//
-//                    t.setSno(col1); t.setPublishedDate(col2); t.setClosingDate(col3); t.setOpeningDate(col4);
-//                    t.setTitle(col5); t.setOrganisation(col6); t.setInsertedDate(CurrentDate.currentDate());
-//
-//                    repository.save(t);
-//
-//                }
-//            }
-//            System.out.println("Successfully Inserted Data into DB");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//    }// Scrape class
-//}
-//
-
 package com.example.Scraping.service;
 
 import com.example.Scraping.entity.Tender;
@@ -100,102 +8,136 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class TenderScraperService {
-    private final TenderRepository repository;
-    public TenderScraperService(TenderRepository repository) {
-        this.repository = repository;
-    }
-    public void scrape() {
+
+    @Autowired
+    private TenderRepository repository;
+
+
+    public void scrapeAndSave() {
 
         WebDriver driver = new ChromeDriver();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        int count = 0;
+        int skipped= 0;
+        int inserted= 0;
+
 
         try {
             driver.get("https://govtprocurement.delhi.gov.in/nicgep/app");
-            Thread.sleep(5000);
 
-            // Click Search automatically
-//            It store all web data
-            List<WebElement> elements = driver.findElements(By.xpath("//*"));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+            WebElement searchBox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("SearchDescription")));
+
+            searchBox.clear();
+            searchBox.sendKeys("delhi");
+
+            driver.findElement(By.name("Go")).click();
+
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
 
 
-            for(WebElement el : elements){
+            // Load existing IDs only once
+            Set<String> existingTenderIds = new HashSet<>(repository.findAllTenderIds());
 
-                try{
-                    if(el.getText().toLowerCase().contains("search")){
-                        el.click();
-                        System.out.println("Search clicked");
-                        break;
-                    }
-                }catch(Exception ignored){}
-            }
-            // Wait for table
+            while (true) {
+                WebElement table = driver.findElement(By.id("table"));
 
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("table.list_table")));
+                List<WebElement> rows = table.findElements(By.xpath("./tbody/tr"));
 
-            // Loop all pages
-            while(true){
-                System.out.println("Reading current page...");
+                for (WebElement row : rows) {
 
-                List<WebElement> rows =driver.findElements(By.cssSelector("table.list_table tr"));
-
-                for(WebElement row : rows){
-                    // skip heading row
-
-                    if(row.findElements(By.tagName("th")).size() > 1){
-                        continue;
-                    }
                     List<WebElement> cols = row.findElements(By.tagName("td"));
 
-                    if(cols.size()==6){
-                        Tender t =new Tender();
 
-                        if(cols.get(0).getText().toLowerCase().contains("s.no")) continue;
-
-                        t.setSno(cols.get(0).getText());
-                        t.setPublishedDate(cols.get(1).getText());
-                        t.setClosingDate(cols.get(2).getText());
-                        t.setOpeningDate(cols.get(3).getText());
-                        t.setTitle(cols.get(4).getText());
-                        t.setOrganisation(cols.get(5).getText());
-                        t.setInsertedDate(CurrentDate.currentDate());
-
-                        boolean exists= repository.existsByTitleAndOrganisation(cols.get(4).getText(), cols.get(5).getText());
-
-                        if(!exists){
-                            repository.save(t);
-                            System.out.println("Inserted new tender");
-                        }else{
-                            System.out.println("Duplicate skipped");
-                        }
+                    if (row.getAttribute("class").contains("list_header")) {
+                        continue;
                     }
-                }
 
-                // NEXT PAGE CLICK It is pagination it automatically goes to next page
-                try{
-                    WebElement next = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[@id='linkFwd']")));
+//                 Skip pagination/footer row
+                    if (row.findElements(By.className("list_footer")).size() > 0) {
+                        continue;
+                    }
+
+                    if (cols.size() < 6) {
+                        continue;
+                    }
+
+                    if (cols.size() < 6) {
+                        continue;
+                    }
+
+                    Tender tender= new Tender();
+
+
+                    String e_publishing_date = cols.get(1).getText().trim();
+                    String closing_date = cols.get(2).getText().trim();
+                    String opening_date = cols.get(3).getText().trim();
+                    String tenderId = cols.get(4).getText().trim();
+                    String organization_chain = cols.get(5).getText().trim();
+
+                    tender.setE_publish_date(e_publishing_date);
+                    tender.setClosing_date(closing_date);
+                    tender.setOpening_date(opening_date);
+                    tender.setTenderId(tenderId);
+                    tender.setOrganization_chain(organization_chain);
+                    tender.setInsertedDate(CurrentDate.currentDate());
+
+
+//                    System.out.println("\n" + e_publishing_date);
+//                    System.out.println(closing_date);
+//                    System.out.println(opening_date);
+//                    System.out.println(tenderId);
+//                    System.out.println(organization_chain + "\n");
+
+                    count++;
+
+//                     Duplicate check using Set
+                    if (existingTenderIds.contains(tenderId)) {
+                        skipped++;
+                        System.out.println("Duplicate Skipped");
+                        continue;
+                    }
+                    repository.save(tender);
+//                    existingTenderIds.add(tenderId);
+                    inserted++;
+                    System.out.println("\nInserted New Data\n");
+
+                }
+                try {
+
+                    WebElement next = wait.until(ExpectedConditions.elementToBeClickable(By.id("linkFwd")));
+
                     next.click();
-                    Thread.sleep(3000);
-                }catch(Exception e){
-                    System.out.println("No more pages");
+
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("table")));
+
+                } catch (Exception e) {
+                    System.out.println("No More Pages");
                     break;
                 }
             }
-            System.out.println(
-                    "All pages data inserted successfully"
-            );
-        }
-        catch(Exception e){
+
+        }catch (Exception e) {
             e.printStackTrace();
-        }finally{
+        } finally {
+            System.out.println("\n\n\n*------*  Important Notice  *-----*\n\n\n");
+            System.out.println("Total Rows on the Web: " + count);
+            System.out.println("Skipped Rows: " + skipped);
+            System.out.println("Total Posted Rows: " + inserted);
+            System.out.println();
             driver.quit();
         }
-
     }
+
+
 }
