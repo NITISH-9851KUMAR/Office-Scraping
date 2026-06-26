@@ -12,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class TenderScraperService {
@@ -27,8 +25,8 @@ public class TenderScraperService {
 
         WebDriver driver = new ChromeDriver();
         int count = 0;
-        int skipped= 0;
-        int inserted= 0;
+        int skipped = 0;
+        int inserted = 0;
 
 
         try {
@@ -45,9 +43,6 @@ public class TenderScraperService {
 
             wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
 
-
-            // Load existing IDs only once
-            Set<String> existingTenderIds = new HashSet<>(repository.findAllTenderIds());
 
             while (true) {
                 WebElement table = driver.findElement(By.id("table"));
@@ -76,7 +71,7 @@ public class TenderScraperService {
                         continue;
                     }
 
-                    Tender tender= new Tender();
+                    Tender tender = new Tender();
 
 
                     String e_publishing_date = cols.get(1).getText().trim();
@@ -93,32 +88,23 @@ public class TenderScraperService {
                     tender.setInsertedDate(CurrentDate.currentDate());
 
 
-//                    System.out.println("\n" + e_publishing_date);
-//                    System.out.println(closing_date);
-//                    System.out.println(opening_date);
-//                    System.out.println(tenderId);
-//                    System.out.println(organization_chain + "\n");
-
                     count++;
 
 //                     Duplicate check using Set
-                    if (existingTenderIds.contains(tenderId)) {
+                    if (repository.existsByTenderId(tenderId)) {
                         skipped++;
                         System.out.println("Duplicate Skipped");
-                        continue;
+                    } else {
+                        System.out.println("\nInserted New Data\n");
+                        repository.save(tender);
+                        inserted++;
                     }
-                    repository.save(tender);
-//                    existingTenderIds.add(tenderId);
-                    inserted++;
-                    System.out.println("\nInserted New Data\n");
 
                 }
                 try {
 
                     WebElement next = wait.until(ExpectedConditions.elementToBeClickable(By.id("linkFwd")));
-
                     next.click();
-
                     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("table")));
 
                 } catch (Exception e) {
@@ -127,7 +113,7 @@ public class TenderScraperService {
                 }
             }
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             System.out.println("\n\n\n*------*  Important Notice  *-----*\n\n\n");

@@ -8,7 +8,5 @@ import java.util.List;
 
 public interface TenderRepository extends JpaRepository<Tender, Long> {
 
-    @Query("SELECT t.tenderId FROM Tender t")
-    List<String> findAllTenderIds();
-
+    boolean existsByTenderId(String tenderId);
 }
