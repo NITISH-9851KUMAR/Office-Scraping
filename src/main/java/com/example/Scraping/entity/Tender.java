@@ -35,4 +35,26 @@ public class Tender {
     @Column(length= 50)
     String insertedDate;
 
+//    Add column into Existing table
+    @Column(length= 1000)
+    String organization_chain_link;
+
+    @Column(length= 1000)
+    String tender_reg_number;
+
+    @Column(nullable = true)
+    long tender_fee;
+
+    @Column(nullable=true)
+    long emd_amount;
+
+    @Column (length= 2000)
+    String work_desc;
+
+    @Column(nullable = true)
+    long tender_value;
+
+    @Column(length= 2500)
+    String tender_inv_auth;
+
 }
