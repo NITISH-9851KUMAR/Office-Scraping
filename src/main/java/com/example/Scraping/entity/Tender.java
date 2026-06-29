@@ -2,7 +2,6 @@ package com.example.Scraping.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Data;
 
 @Entity
 @Table(

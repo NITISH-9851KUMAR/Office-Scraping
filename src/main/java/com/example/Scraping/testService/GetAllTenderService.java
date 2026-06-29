@@ -1,8 +1,7 @@
-package com.example.Scraping.service;
+package com.example.Scraping.testService;
 
 import com.example.Scraping.entity.Tender;
 import com.example.Scraping.repository.TenderRepository;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
