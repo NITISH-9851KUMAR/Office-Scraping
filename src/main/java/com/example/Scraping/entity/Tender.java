@@ -43,16 +43,16 @@ public class Tender {
     String tender_reg_number;
 
     @Column(nullable = true)
-    long tender_fee;
+    String tender_fee;
 
     @Column(nullable=true)
-    long emd_amount;
+    String emd_amount;
 
     @Column (length= 2000)
     String work_desc;
 
     @Column(nullable = true)
-    long tender_value;
+    String tender_value;
 
     @Column(length= 2500)
     String tender_inv_auth;
