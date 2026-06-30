@@ -74,29 +74,17 @@ public class TenderScraperServiceGetLink {
                     String tenderId = cols.get(4).getText().trim();
                     String organization_chain = cols.get(5).getText().trim();
 
-
-//                    System.out.println(e_publishing_date);
-//                    System.out.println(closing_date);
-//                    System.out.println(opening_date);
-//                    System.out.println(tenderId);
-//                    System.out.println(organization_chain+"\n");
-
-                    count++;
-
-//                     Duplicate check using Method
-                    String tenderUrl = cols.get(4).findElement(By.tagName("a")).getAttribute("href");
-                    if (repository.existsTenderId(tenderId)) {
-                        tenderLinks.add(new TenderLink(tenderId, tenderUrl));
-//                        System.out.println("\u001B[31mDuplicate Skipped\u001B[0m");
+                    if (repository.existsByTenderIdAndClosingDate(tenderId,closing_date)) {
+                        System.out.println("Duplicate Data is found!");
+                        skipped++;
                     }
                     else {
 //                        If tender_id is not exist in db store tender details, also store its link value
-//                        System.out.println("\nInserted New Data\n");
-                        repository.insertTender(e_publishing_date,closing_date,opening_date,tenderId,organization_chain,CurrentDate.currentDate());
+                        repository.insertTender(e_publishing_date, closing_date, opening_date, tenderId, organization_chain, CurrentDate.currentDate());
+                        String tenderUrl = cols.get(4).findElement(By.tagName("a")).getAttribute("href");
                         tenderLinks.add(new TenderLink(tenderId, tenderUrl));
-//                        String tenderUrl = cols.get(4).findElement(By.tagName("a")).getAttribute("href");
                         inserted++;
-                        System.out.println("Inserted New Rows In DB");
+                        System.out.println("Inserted New Data");
 
                     }
                 }
@@ -106,7 +94,7 @@ public class TenderScraperServiceGetLink {
                     driver.get(tenderLink.getUrl());
                     wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//td[contains(.,'Organisation Chain')]")));
 
-                    String organisationChain_link = driver.findElement(By.xpath("//td[contains(.,'Organisation Chain')]/following-sibling::td[1]")).getText().trim();
+//                    String organisationChain_link = driver.findElement(By.xpath("//td[contains(.,'Organisation Chain')]/following-sibling::td[1]")).getText().trim();
                     String tenderRegNo = driver.findElement(By.xpath("//td[contains(.,'Tender Reference Number')]/following-sibling::td[1]")).getText().trim();
                     String tenderFee = driver.findElement(By.xpath("//td[contains(.,'Tender Fee in')]/following-sibling::td[1]")).getText().trim();
                     String emdAmount = driver.findElement(By.xpath("//td[contains(.,'EMD Amount')]/following-sibling::td[1]")).getText().trim();
@@ -116,30 +104,18 @@ public class TenderScraperServiceGetLink {
                     String address = driver.findElement(By.xpath("//td[text()='Tender Inviting Authority']/ancestor::tr/following-sibling::tr[1]//td[b[text()='Address']]/following-sibling::td")).getText().trim();
 
 //                    check if we have already updated the tender which is exists in db
-                    if (repository.existsOrganizationChainLink(organisationChain_link)) {
-                        System.out.println("This tenderId is Already Updated!");
-                        skipped++;
-                    }
-                    else {
-                        int value = repository.updateTenderDetails(organisationChain_link, tenderRegNo, tenderFee, emdAmount,
-                                workDescription, tenderValue, name + address, tenderLink.getTenderId());
-                        // Click WEBSITE Back button
-                        if (value > 0) {
-                            System.out.println("Update Tender Row Successfully!");
-                        }
+
+                    int value = repository.updateTenderDetails(tenderRegNo, tenderFee, emdAmount,
+                            workDescription, tenderValue, name + address, tenderLink.getTenderId());
+//                    // Click WEBSITE Back button
+                    if (value > 0) {
+//                        System.out.println("Update Tender Row Successfully!");
+                        count++;
                     }
 
                     driver.findElement(By.id("DirectLink_11")).click();
 
                     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("table")));
-//                    System.out.println("\n\n Print Link value \n");
-//                    System.out.println(organisationChain);
-//                    System.out.println(tenderRegNo);
-//                    System.out.println(tenderFee);
-//                    System.out.println(emdAmount);
-//                    System.out.println(workDescription);
-//                    System.out.println(tenderValue);
-//                    System.out.println(name + " " + address);
                 }
 
                 try {
@@ -158,7 +134,7 @@ public class TenderScraperServiceGetLink {
         } finally {
             System.out.println("\n\n\n*------*  Important Notice  *-----*\n\n\n");
             System.out.println("Total New Inserted Value: " + inserted);
-            System.out.println("Total Column Update Value: " + skipped);
+            System.out.println("Total Skipped Value: " + skipped);
             driver.quit();
         }
     }

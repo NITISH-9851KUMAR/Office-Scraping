@@ -27,6 +27,7 @@ public class ScrapingApplication implements CommandLineRunner {
 	public void run(String... args){
 //		tService.scrapeAndSave();
 		tenderScraperServiceGetLink.scrapeAndSave();
+//		TestClass.check();
 	}
 
 }
