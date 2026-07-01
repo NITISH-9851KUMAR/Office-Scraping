@@ -26,6 +26,7 @@ public class TenderScraperServiceGetLink {
     public void scrapeAndSave() {
 
         WebDriver driver = new ChromeDriver();
+        WebDriver linkDriver = new ChromeDriver();
         int count = 0;
         int skipped = 0;
         int inserted = 0;
@@ -91,7 +92,7 @@ public class TenderScraperServiceGetLink {
 
 //                Store Link value
                 for (TenderLink tenderLink : tenderLinks) {
-                    driver.get(tenderLink.getUrl());
+                    linkDriver.get(tenderLink.getUrl());
                     wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//td[contains(.,'Organisation Chain')]")));
 
 //                    String organisationChain_link = driver.findElement(By.xpath("//td[contains(.,'Organisation Chain')]/following-sibling::td[1]")).getText().trim();
@@ -112,10 +113,10 @@ public class TenderScraperServiceGetLink {
 //                        System.out.println("Update Tender Row Successfully!");
                         count++;
                     }
-
-                    driver.findElement(By.id("DirectLink_11")).click();
-
-                    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("table")));
+//
+//                    driver.findElement(By.id("DirectLink_11")).click();
+//
+//                    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("table")));
                 }
 
                 try {
@@ -132,9 +133,9 @@ public class TenderScraperServiceGetLink {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            System.out.println("\n\n\n*------*  Important Notice  *-----*\n\n\n");
+            System.out.println("\n\n*------*  Important Notice  *-----*\n\n");
             System.out.println("Total New Inserted Value: " + inserted);
-            System.out.println("Total Skipped Value: " + skipped);
+            System.out.println("Total Skipped Value: " + skipped+"\n\n");
             driver.quit();
         }
     }
